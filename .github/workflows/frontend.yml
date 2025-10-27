@@ -1,0 +1,29 @@
+name: Bump JS
+
+on: [workflow_dispatch, push, pull_request]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      - name: Install dependencies
+        working-directory: js
+        run: npm install
+      
+      - name: Check formatting (Prettier)
+        working-directory: js
+        run: npm run format-check
+        continue-on-error: false
+      
+      - name: Build
+        working-directory: js
+        run: npm run build
