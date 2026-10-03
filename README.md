@@ -2,13 +2,16 @@
 
 > **Read-only archive of released versions of huseyinfiliz/bump.** Not for installation: use [Packagist](https://packagist.org/packages/huseyinfiliz/bump) or the [upstream repository](https://github.com/huseyinfiliz/bump).
 
-**0** versions archived · Latest: [`1.5`](https://github.com/flarchive/huseyinfiliz-bump/tree/archive/v1.5) · License: `MIT` · Flarum: `^1.2.0`
+**4** versions archived · Latest: [`1.5`](https://github.com/flarchive/huseyinfiliz-bump/tree/archive/v1.5) · License: `MIT` · Flarum: `^1.2.0`
 
 ## Archived Versions
 
 | Version | Released | Flarum | Source |
 |---|---|---|---|
-| — | — | — | — |
+| `1.0.0` | 2025-10-23 | `^1.2.0` | [Browse](https://github.com/flarchive/huseyinfiliz-bump/tree/archive/v1.0.0) |
+| `1.1.0` | 2025-10-27 | `^1.2.0` | [Browse](https://github.com/flarchive/huseyinfiliz-bump/tree/archive/v1.1.0) |
+| `1.1.1` | 2025-11-03 | `^1.2.0` | [Browse](https://github.com/flarchive/huseyinfiliz-bump/tree/archive/v1.1.1) |
+| `1.5` | 2025-11-03 | `^1.2.0` | [Browse](https://github.com/flarchive/huseyinfiliz-bump/tree/archive/v1.5) |
 
 Catalog entry: [packages/huseyinfiliz-bump.json](https://github.com/flarchive/archive-index/blob/main/packages/huseyinfiliz-bump.json)
 
