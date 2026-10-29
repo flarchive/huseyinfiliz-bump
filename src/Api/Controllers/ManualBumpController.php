@@ -1,0 +1,104 @@
+<?php
+
+namespace HuseyinFiliz\Bump\Api\Controllers;
+
+use Carbon\Carbon;
+use Flarum\Api\Context;
+use Flarum\Discussion\Discussion;
+use Flarum\Locale\Translator;
+use Flarum\Settings\SettingsRepositoryInterface;
+use HuseyinFiliz\Bump\Repository\BumpQuotaRepository;
+
+class ManualBumpController
+{
+    public function __construct(
+        protected SettingsRepositoryInterface $settings,
+        protected Translator $translator,
+        protected BumpQuotaRepository $repository,
+        protected \HuseyinFiliz\Bump\Services\BumpSettingsResolver $resolver
+    ) {
+    }
+
+    public function __invoke(Context $context): Discussion
+    {
+        $actor = $context->getActor();
+        $discussion = $context->model;
+
+        // Permission check (BumpPolicy handles everything)
+        $actor->assertCan('bump', $discussion);
+
+        $now = Carbon::now();
+
+        // CHECK: Can user moderate bumps? (group-based)
+        $isModerator = $this->resolver->canModerateBumps($actor);
+
+        // If not moderator, check quota and cooldown using resolver
+        if (! $isModerator) {
+            // CHECK: Is bump disabled for this user's group?
+            if ($this->resolver->isBumpDisabled($actor)) {
+                throw new \Flarum\Foundation\ValidationException([
+                    'message' => $this->translator->trans('huseyinfiliz-bump.api.bump_disabled')
+                ]);
+            }
+
+            // Get user's group-aware settings
+            $cooldownHours = $this->resolver->getCooldown($actor);
+            $dailyQuota = $this->resolver->getDailyQuota($actor);
+            $weeklyQuota = $this->resolver->getWeeklyQuota($actor);
+
+            // Cooldown check using repository
+            $lastManualBump = $this->repository->getLastManualBump($actor->id, $discussion->id);
+
+            if ($lastManualBump && $cooldownHours > 0) {
+                $hoursSinceLastBump = $now->diffInHours($lastManualBump->bumped_at, true);
+
+                if ($hoursSinceLastBump < $cooldownHours) {
+                    $hoursRemaining = ceil($cooldownHours - $hoursSinceLastBump);
+
+                    throw new \Flarum\Foundation\ValidationException([
+                        'message' => $this->translator->trans('huseyinfiliz-bump.api.cooldown_error', [
+                            'hours' => $hoursRemaining
+                        ])
+                    ]);
+                }
+            }
+
+            // Quota check (for owners only)
+            if ($dailyQuota > 0 || $weeklyQuota > 0) {
+                // Get quota counts using repository (cached for 60 seconds)
+                $quotaCounts = $this->repository->getQuotaCounts($actor->id);
+
+                // Daily quota check
+                if ($dailyQuota > 0 && $quotaCounts->daily_count >= $dailyQuota) {
+                    throw new \Flarum\Foundation\ValidationException([
+                        'message' => $this->translator->trans('huseyinfiliz-bump.api.daily_quota_error', [
+                            'limit' => $dailyQuota
+                        ])
+                    ]);
+                }
+
+                // Weekly quota check
+                if ($weeklyQuota > 0 && $quotaCounts->weekly_count >= $weeklyQuota) {
+                    throw new \Flarum\Foundation\ValidationException([
+                        'message' => $this->translator->trans('huseyinfiliz-bump.api.weekly_quota_error', [
+                            'limit' => $weeklyQuota
+                        ])
+                    ]);
+                }
+            }
+        }
+
+        // Perform bump
+        $discussion->last_posted_at = $now;
+        $discussion->last_bumped_at = $now;
+        $discussion->save();
+
+        // Record quota using repository (if not moderator)
+        // This automatically invalidates the user's quota cache
+        if (! $isModerator) {
+            $this->repository->createBump($actor->id, $discussion->id, $now);
+        }
+
+        return $discussion;
+    }
+}

@@ -1,0 +1,30 @@
+name: Build JavaScript Assets
+
+on:
+  push:
+    branches:
+      - 2.x
+    paths:
+      - 'js/**'
+      - 'package.json'
+      - 'composer.json'
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build JavaScript
+        uses: flarum/action-build@v5
+        with:
+          package_manager: yarn
+          build_script: build
+          js_path: ./js
