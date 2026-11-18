@@ -1,0 +1,32 @@
+{
+    "name": "@huseyinfiliz/bump",
+    "private": true,
+    "packageManager": "yarn@1.22.22",
+    "version": "0.0.0",
+    "devDependencies": {
+        "flarum-webpack-config": "^3.1.0",
+        "webpack": "^5.104.1",
+        "webpack-cli": "^7.3.1",
+        "prettier": "^3.10.1",
+        "@flarum/prettier-config": "^1.0.0",
+        "flarum-tsconfig": "^2.0.0",
+        "typescript": "^6.0.3",
+        "typescript-coverage-report": "^2.1.2"
+    },
+    "scripts": {
+        "dev": "webpack --mode development --watch",
+        "build": "webpack --mode production",
+        "analyze": "webpack --mode production --json > stats.json",
+        "format": "prettier --write src",
+        "format-check": "prettier --check src",
+        "clean-typings": "node -e \"require('fs').rmSync('dist-typings', { recursive: true, force: true }); require('fs').mkdirSync('dist-typings');\"",
+        "build-typings": "yarn clean-typings && tsc && yarn post-build-typings",
+        "post-build-typings": "find dist-typings -type f -name '*.d.ts' -print0 | xargs -0 sed -i.bak 's,../src/@types,@types,g' && find dist-typings -type f -name '*.d.ts.bak' -delete",
+        "check-typings": "tsc --noEmit --emitDeclarationOnly false",
+        "check-typings-coverage": "typescript-coverage-report"
+    },
+    "prettier": "@flarum/prettier-config",
+    "resolutions": {
+        "**/type-coverage-core/minimatch": "6.2.2"
+    }
+}

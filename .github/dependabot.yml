@@ -1,0 +1,35 @@
+version: 2
+updates:
+  - package-ecosystem: composer
+    directory: /
+    target-branch: 2.x
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      composer-minor-and-patch:
+        update-types: [minor, patch]
+
+  # Dependabot uses the npm ecosystem for Yarn lockfiles.
+  - package-ecosystem: npm
+    directory: /js
+    target-branch: 2.x
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore:
+      # Coverage tooling requires the compiler API removed in TypeScript 7.0.
+      - dependency-name: typescript
+        versions: ['7.0.x']
+    groups:
+      javascript-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: 2.x
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ['*']
